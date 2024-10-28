@@ -58,26 +58,6 @@
         .hidden {
             display: none;
         }
-
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            #shareBtn, #downloadBtn {
-                display: inline-block; /* Show both buttons */
-            }
-            #copyLinkBtn {
-                display: none; /* Hide the copy link button */
-            }
-        }
-
-        /* Desktop Styles */
-        @media (min-width: 769px) {
-            #shareBtn {
-                display: none; /* Hide share button on desktop */
-            }
-            #copyLinkBtn {
-                display: inline-block; /* Show copy link button */
-            }
-        }
     </style>
 </head>
 <body>
@@ -98,11 +78,9 @@
         <div style="display: flex; align-items: center; justify-content: center;">
             <div id="qrcode"></div>
         </div>
-        <!-- Buttons for sharing and downloading QR code -->
+        <!-- Button for downloading QR code -->
         <div id="actionButtons" class="hidden">
-            <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
             <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
-            <button id="copyLinkBtn" onclick="copyQRCodeLink()">Copy QR Code Link</button>
         </div>
     </div>
 
@@ -146,22 +124,8 @@
                 height: 200,
             });
 
-            // Show action buttons after QR code is generated
+            // Show download button after QR code is generated
             document.getElementById('actionButtons').classList.remove('hidden');
-        }
-
-        function shareQRCode() {
-            const qrCode = document.querySelector('#qrcode img').src;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'QR Code',
-                    text: 'Here is the generated QR Code.',
-                    url: qrCode
-                })
-                .catch(console.error);
-            } else {
-                alert('Sharing not supported on this browser.');
-            }
         }
 
         function downloadQRCode() {
@@ -170,15 +134,6 @@
             link.href = qrCodeImage.src;
             link.download = 'qrcode.png';
             link.click();
-        }
-
-        function copyQRCodeLink() {
-            const qrCodeLink = document.querySelector('#qrcode img').src;
-            navigator.clipboard.writeText(qrCodeLink).then(() => {
-                alert('QR code link copied to clipboard!');
-            }).catch(err => {
-                alert('Failed to copy QR code link: ', err);
-            });
         }
     </script>
 </body>
