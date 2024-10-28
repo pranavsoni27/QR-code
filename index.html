@@ -6,7 +6,6 @@
     <title>QR Code Generator</title>
     <link rel="icon" href="/qr.jpg">
     <style>
-        /* Reset and General Styling */
         * {
             margin: 0;
             padding: 0;
@@ -21,8 +20,6 @@
             background: radial-gradient(circle, #2b4d9b, #b33030);
             color: #333;
         }
-
-        /* Container Styling */
         .container {
             background: #fff;
             padding: 20px;
@@ -78,13 +75,13 @@
         <div style="display: flex; align-items: center; justify-content: center;">
             <div id="qrcode"></div>
         </div>
-        <!-- Button for downloading QR code -->
         <div id="actionButtons" class="hidden">
             <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
         </div>
+        <!-- Hidden canvas for QR code -->
+        <canvas id="qrCanvas" class="hidden"></canvas>
     </div>
 
-    <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         function toggleInputFields() {
@@ -118,27 +115,35 @@
 
             // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), {
+            const qr = new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
             });
 
-            // Convert generated QR code to an image
+            // Convert QR code to image in canvas
             setTimeout(() => {
                 const qrCodeImage = document.querySelector('#qrcode img');
-                if (qrCodeImage) {
-                    // Set download link to the image source
-                    document.getElementById('downloadBtn').setAttribute('href', qrCodeImage.src);
-                    document.getElementById('downloadBtn').setAttribute('download', 'qrcode.png');
-                    document.getElementById('actionButtons').classList.remove('hidden'); // Show download button
-                }
-            }, 300); // Allow some time for QR code generation
+                const canvas = document.getElementById('qrCanvas');
+                const context = canvas.getContext('2d');
+
+                canvas.width = qrCodeImage.width;
+                canvas.height = qrCodeImage.height;
+
+                // Draw QR code on canvas
+                context.drawImage(qrCodeImage, 0, 0, canvas.width, canvas.height);
+
+                // Show download button
+                document.getElementById('actionButtons').classList.remove('hidden');
+            }, 300); // Delay for QR code generation
         }
 
         function downloadQRCode() {
-            // Simulate a click on the download link
-            document.getElementById('downloadBtn').click();
+            const canvas = document.getElementById('qrCanvas');
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'qrcode.png';
+            link.click();
         }
     </script>
 </body>
