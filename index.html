@@ -141,8 +141,8 @@
         function downloadQRCode() {
             const canvas = document.getElementById('qrCanvas');
             const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/jpeg'); // Set format to JPEG
+            link.download = 'qrcode.jpg';
             link.click();
         }
     </script>
