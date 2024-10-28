@@ -124,16 +124,21 @@
                 height: 200,
             });
 
-            // Show download button after QR code is generated
-            document.getElementById('actionButtons').classList.remove('hidden');
+            // Convert generated QR code to an image
+            setTimeout(() => {
+                const qrCodeImage = document.querySelector('#qrcode img');
+                if (qrCodeImage) {
+                    // Set download link to the image source
+                    document.getElementById('downloadBtn').setAttribute('href', qrCodeImage.src);
+                    document.getElementById('downloadBtn').setAttribute('download', 'qrcode.png');
+                    document.getElementById('actionButtons').classList.remove('hidden'); // Show download button
+                }
+            }, 300); // Allow some time for QR code generation
         }
 
         function downloadQRCode() {
-            const qrCodeImage = document.querySelector('#qrcode img');
-            const link = document.createElement('a');
-            link.href = qrCodeImage.src;
-            link.download = 'qrcode.png';
-            link.click();
+            // Simulate a click on the download link
+            document.getElementById('downloadBtn').click();
         }
     </script>
 </body>
