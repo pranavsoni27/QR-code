@@ -54,30 +54,12 @@
         .hidden {
             display: none;
         }
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            #shareBtn, #downloadBtn {
-                display: inline-block; /* Show both buttons */
-            }
-            #copyLinkBtn {
-                display: none; /* Hide the copy link button */
-            }
-        }
-        /* Desktop Styles */
-        @media (min-width: 769px) {
-            #shareBtn {
-                display: none; /* Hide share button on desktop */
-            }
-            #copyLinkBtn {
-                display: inline-block; /* Show copy link button */
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>QR Code Generator</h2>
-        <select style="width: 116px; height: 40px;" id="typeSelect" onchange="toggleInputFields()">
+        <select id="typeSelect" onchange="toggleInputFields()">
             <option value="wifi">Wi-Fi</option>
             <option value="link">Link</option>
         </select>
@@ -96,7 +78,6 @@
         <div id="actionButtons" class="hidden">
             <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
             <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
-            <button id="copyLinkBtn" onclick="copyQRCodeLink()">Copy QR Code Link</button>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -132,10 +113,12 @@
 
             // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), {
+            const qrCode = new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
+                correctLevel: QRCode.CorrectLevel.H,
+                useSVG: true // Generate QR code as SVG for better quality
             });
 
             // Show action buttons after QR code is generated
@@ -143,50 +126,31 @@
         }
 
         function shareQRCode() {
-            const qrCodeImage = document.querySelector('#qrcode img'); // Select the QR code image
-            if (qrCodeImage) {
-                // Use the src of the QR code image to share
-                const qrCodeSrc = qrCodeImage.src;
-                if (navigator.share) {
-                    fetch(qrCodeSrc)
-                        .then(response => response.blob())
-                        .then(blob => {
-                            const file = new File([blob], "qrcode.png", { type: "image/png" });
-                            const shareData = {
-                                title: 'QR Code',
-                                text: 'Here is the generated QR Code.',
-                                files: [file] // Share the file instead of a URL
-                            };
-                            navigator.share(shareData)
-                                .catch(console.error);
-                        });
-                } else {
-                    alert('Sharing not supported on this browser.');
-                }
+            const qrCodeElement = document.querySelector('#qrcode svg'); // Select the QR code SVG element
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(qrCodeElement);
+            const base64data = 'data:image/svg+xml;base64,' + btoa(svgString);
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'QR Code',
+                    text: 'Here is the generated QR Code.',
+                    url: base64data // Share the SVG data
+                }).catch(console.error);
             } else {
-                alert('No QR Code generated to share.');
+                alert('Sharing not supported on this browser.');
             }
         }
 
         function downloadQRCode() {
-            const qrCodeImage = document.querySelector('#qrcode img'); // Select the QR code image
-            if (qrCodeImage) {
-                const link = document.createElement('a');
-                link.href = qrCodeImage.src; // Use the src of the QR code image
-                link.download = 'qrcode.png'; // Set the filename
-                link.click(); // Trigger the download
-            } else {
-                alert('No QR Code generated to download.');
-            }
-        }
-
-        function copyQRCodeLink() {
-            const qrCodeLink = document.querySelector('#qrcode img').src;
-            navigator.clipboard.writeText(qrCodeLink).then(() => {
-                alert('QR Code link copied to clipboard!');
-            }).catch(err => {
-                alert('Failed to copy the link: ', err);
-            });
+            const qrCodeElement = document.querySelector('#qrcode svg'); // Select the QR code SVG element
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(qrCodeElement);
+            const base64data = 'data:image/svg+xml;base64,' + btoa(svgString);
+            const link = document.createElement('a');
+            link.href = base64data; // Use the SVG data for download
+            link.download = 'qrcode.svg'; // Set the filename
+            link.click(); // Trigger the download
         }
     </script>
 </body>
