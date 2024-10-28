@@ -54,11 +54,6 @@
         .hidden {
             display: none;
         }
-        @media (max-width: 600px) {
-            button {
-                margin: 5px 0;
-            }
-        }
     </style>
 </head>
 <body>
@@ -76,9 +71,7 @@
             <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)" required>
         </div>
         <button onclick="generateQRCode()">Generate QR Code</button>
-        <div style="display: flex; align-items: center; justify-content: center;">
-            <div id="qrcode"></div>
-        </div>
+        <div id="qrcode" style="display: none;"></div>
         <!-- Buttons for sharing and downloading QR code -->
         <div id="actionButtons" class="hidden">
             <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
@@ -86,6 +79,7 @@
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
     <script>
         function toggleInputFields() {
             const wifiFields = document.getElementById('wifiFields');
@@ -97,6 +91,7 @@
 
             // Clear QR code when switching options
             document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('qrcode').style.display = 'none'; // Hide QR code initially
             document.getElementById('actionButtons').classList.add('hidden'); // Hide action buttons
         }
 
@@ -123,43 +118,37 @@
                 width: 200,
                 height: 200,
                 correctLevel: QRCode.CorrectLevel.H,
-                useSVG: true // Generate QR code as SVG for better quality
             });
 
-            // Show action buttons after QR code is generated
+            // Show QR code and action buttons after generation
+            document.getElementById('qrcode').style.display = 'block';
             document.getElementById('actionButtons').classList.remove('hidden');
         }
 
         function shareQRCode() {
-            const qrCodeElement = document.querySelector('#qrcode svg'); // Select the QR code SVG element
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(qrCodeElement);
-            const base64data = 'data:image/svg+xml;base64,' + btoa(svgString);
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'QR Code',
-                    text: 'Here is the generated QR Code.',
-                    url: base64data // Share the SVG data
-                })
-                .then(() => console.log('Shared successfully'))
-                .catch(err => console.error('Error sharing:', err));
-            } else {
-                alert('Sharing not supported on this browser.');
-            }
+            html2canvas(document.getElementById('qrcode')).then(canvas => {
+                const base64data = canvas.toDataURL("image/png");
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'QR Code',
+                        text: 'Here is the generated QR Code.',
+                        url: base64data // Share the canvas as an image
+                    })
+                    .then(() => console.log('Shared successfully'))
+                    .catch(err => console.error('Error sharing:', err));
+                } else {
+                    alert('Sharing not supported on this browser.');
+                }
+            });
         }
 
         function downloadQRCode() {
-            const qrCodeElement = document.querySelector('#qrcode svg'); // Select the QR code SVG element
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(qrCodeElement);
-            const base64data = 'data:image/svg+xml;base64,' + btoa(svgString);
-            const link = document.createElement('a');
-            link.href = base64data; // Use the SVG data for download
-            link.download = 'qrcode.svg'; // Set the filename
-            document.body.appendChild(link); // Append to body for Firefox
-            link.click(); // Trigger the download
-            document.body.removeChild(link); // Clean up
+            html2canvas(document.getElementById('qrcode')).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL("image/png"); // Convert canvas to image
+                link.download = 'qrcode.png'; // Set the filename
+                link.click(); // Trigger the download
+            });
         }
     </script>
 </body>
