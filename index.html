@@ -50,9 +50,11 @@
         }
         #qrcode {
             margin-top: 20px;
+            display: none; /* Hide by default */
         }
-        .hidden {
-            display: none;
+        #actionButtons {
+            margin-top: 10px;
+            display: none; /* Hide by default */
         }
     </style>
 </head>
@@ -71,28 +73,30 @@
             <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)" required>
         </div>
         <button onclick="generateQRCode()">Generate QR Code</button>
-        <div id="qrcode" style="display: none;"></div>
-        <!-- Buttons for sharing and downloading QR code -->
-        <div id="actionButtons" class="hidden">
+        <div id="qrcodeContainer">
+            <img id="qrcode" alt="QR Code" />
+        </div>
+        <div id="actionButtons">
             <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
-            <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
+            <a id="downloadBtn" href="#" download="qrcode.png">
+                <button>Download QR Code</button>
+            </a>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-qrcode/1.0/jquery.qrcode.min.js"></script>
     <script>
         function toggleInputFields() {
             const wifiFields = document.getElementById('wifiFields');
             const linkFields = document.getElementById('linkFields');
             const type = document.getElementById('typeSelect').value;
 
-            wifiFields.classList.toggle('hidden', type !== 'wifi');
-            linkFields.classList.toggle('hidden', type === 'wifi');
+            wifiFields.style.display = type === 'wifi' ? 'block' : 'none';
+            linkFields.style.display = type === 'link' ? 'block' : 'none';
 
             // Clear QR code when switching options
-            document.getElementById('qrcode').innerHTML = '';
-            document.getElementById('qrcode').style.display = 'none'; // Hide QR code initially
-            document.getElementById('actionButtons').classList.add('hidden'); // Hide action buttons
+            document.getElementById('qrcode').src = '';
+            document.getElementById('actionButtons').style.display = 'none'; // Hide action buttons
         }
 
         function generateQRCode() {
@@ -103,7 +107,7 @@
                 const ssid = document.getElementById('ssid').value;
                 const password = document.getElementById('password').value;
 
-                if (!ssid) return alert("Please enter the Wi-Fi name (SSID).");
+                if (!ssid || !password) return alert("Please enter both the Wi-Fi name (SSID) and password.");
                 qrCodeText = `WIFI:S:${ssid};P:${password};;`;
             } else {
                 const link = document.getElementById('link').value;
@@ -111,44 +115,31 @@
                 qrCodeText = link;
             }
 
-            // Clear previous QR code and generate new one
-            document.getElementById('qrcode').innerHTML = '';
-            const qrCode = new QRCode(document.getElementById('qrcode'), {
-                text: qrCodeText,
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H,
-            });
+            // Generate QR Code and set its source
+            const qrcodeImage = document.getElementById('qrcode');
+            $('#qrcode').empty().qrcode({ width: 200, height: 200, text: qrCodeText });
+            const dataUrl = $('#qrcode').find('canvas').get(0).toDataURL('image/png');
+            qrcodeImage.src = dataUrl;
 
             // Show QR code and action buttons after generation
-            document.getElementById('qrcode').style.display = 'block';
-            document.getElementById('actionButtons').classList.remove('hidden');
+            qrcodeImage.style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'block';
+            document.getElementById('downloadBtn').href = dataUrl; // Set download link
         }
 
         function shareQRCode() {
-            html2canvas(document.getElementById('qrcode')).then(canvas => {
-                const base64data = canvas.toDataURL("image/png");
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'QR Code',
-                        text: 'Here is the generated QR Code.',
-                        url: base64data // Share the canvas as an image
-                    })
-                    .then(() => console.log('Shared successfully'))
-                    .catch(err => console.error('Error sharing:', err));
-                } else {
-                    alert('Sharing not supported on this browser.');
-                }
-            });
-        }
-
-        function downloadQRCode() {
-            html2canvas(document.getElementById('qrcode')).then(canvas => {
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL("image/png"); // Convert canvas to image
-                link.download = 'qrcode.png'; // Set the filename
-                link.click(); // Trigger the download
-            });
+            const qrcodeImage = document.getElementById('qrcode');
+            if (navigator.share) {
+                navigator.share({
+                    title: 'QR Code',
+                    text: 'Here is the generated QR Code.',
+                    url: qrcodeImage.src // Share the QR code image directly
+                })
+                .then(() => console.log('Shared successfully'))
+                .catch(err => console.error('Error sharing:', err));
+            } else {
+                alert('Sharing not supported on this browser.');
+            }
         }
     </script>
 </body>
