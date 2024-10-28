@@ -39,11 +39,18 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 1em;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        select {
+            max-width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         button {
             background-color: #28a745;
             color: #fff;
             cursor: pointer;
+            display: none; /* Initially hidden */
         }
         button:hover {
             background-color: #218838;
@@ -54,30 +61,12 @@
         .hidden {
             display: none;
         }
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            #shareBtn, #downloadBtn {
-                display: inline-block; /* Show both buttons */
-            }
-            #copyLinkBtn {
-                display: none; /* Hide the copy link button */
-            }
-        }
-        /* Desktop Styles */
-        @media (min-width: 769px) {
-            #shareBtn {
-                display: none; /* Hide share button on desktop */
-            }
-            #copyLinkBtn {
-                display: inline-block; /* Show copy link button */
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>QR Code Generator</h2>
-        <select style="width: 116px; height: 40px;" id="typeSelect" onchange="toggleInputFields()">
+        <select id="typeSelect" onchange="toggleInputFields()">
             <option value="wifi">Wi-Fi</option>
             <option value="link">Link</option>
         </select>
@@ -92,12 +81,8 @@
         <div style="display: flex; align-items: center; justify-content: center;">
             <div id="qrcode"></div>
         </div>
-        <!-- Buttons for sharing and downloading QR code -->
-        <div id="actionButtons" class="hidden">
-            <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
-            <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
-            <button id="copyLinkBtn" onclick="copyQRCodeLink()">Copy QR Code Link</button>
-        </div>
+        <button id="downloadButton" onclick="downloadQRCode()">Download QR Code</button>
+        <button id="copyButton" onclick="copyQRCodeLink()">Copy QR Link</button>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
@@ -111,7 +96,6 @@
 
             // Clear QR code when switching options
             document.getElementById('qrcode').innerHTML = '';
-            document.getElementById('actionButtons').classList.add('hidden'); // Hide action buttons
         }
 
         function generateQRCode() {
@@ -132,44 +116,48 @@
 
             // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), {
+
+            // Create a canvas element to draw the QR code
+            const canvas = document.createElement('canvas');
+            new QRCode(canvas, {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
             });
 
-            // Show action buttons after QR code is generated
-            document.getElementById('actionButtons').classList.remove('hidden');
-        }
+            // Display the QR code
+            document.getElementById('qrcode').appendChild(canvas);
 
-        function shareQRCode() {
-            const qrCode = document.querySelector('#qrcode img').src;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'QR Code',
-                    text: 'Here is the generated QR Code.',
-                    url: qrCode
-                })
-                .catch(console.error);
-            } else {
-                alert('Sharing not supported on this browser.');
-            }
+            // Show the download and copy buttons
+            document.getElementById('downloadButton').style.display = 'inline-block';
+            document.getElementById('copyButton').style.display = 'inline-block';
         }
 
         function downloadQRCode() {
-            const qrCodeImage = document.querySelector('#qrcode img');
+            const canvas = document.querySelector('#qrcode canvas');
             const link = document.createElement('a');
-            link.href = qrCodeImage.src;
+            link.href = canvas.toDataURL('image/png');
             link.download = 'qrcode.png';
             link.click();
         }
 
         function copyQRCodeLink() {
-            const qrCodeLink = document.querySelector('#qrcode img').src;
-            navigator.clipboard.writeText(qrCodeLink).then(() => {
-                alert('QR code link copied to clipboard!');
-            }).catch(err => {
-                alert('Failed to copy QR code link: ', err);
+            const type = document.getElementById('typeSelect').value;
+            let qrCodeText = '';
+
+            if (type === 'wifi') {
+                const ssid = document.getElementById('ssid').value;
+                const password = document.getElementById('password').value;
+                qrCodeText = `WIFI:S:${ssid};P:${password};;`;
+            } else {
+                const link = document.getElementById('link').value;
+                qrCodeText = link;
+            }
+
+            navigator.clipboard.writeText(qrCodeText).then(() => {
+                alert('QR Code data copied to clipboard!');
+            }, () => {
+                alert('Failed to copy QR Code data.');
             });
         }
     </script>
