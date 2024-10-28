@@ -132,7 +132,7 @@
 
             // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            const qrCodeElement = new QRCode(document.getElementById('qrcode'), {
+            new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
@@ -143,36 +143,49 @@
         }
 
         function shareQRCode() {
-            const qrCodeImg = document.querySelector('#qrcode img');
-            if (qrCodeImg) {
-                const qrCodeImageUrl = qrCodeImg.src;
+            const qrCodeImage = document.querySelector('#qrcode img'); // Select the QR code image
+            if (qrCodeImage) {
+                // Use the src of the QR code image to share
+                const qrCodeSrc = qrCodeImage.src;
                 if (navigator.share) {
-                    navigator.share({
-                        title: 'QR Code',
-                        text: 'Here is the generated QR Code.',
-                        files: [new File([qrCodeImageUrl], 'qrcode.png', { type: 'image/png' })] // Share the image file
-                    })
-                    .catch(console.error);
+                    fetch(qrCodeSrc)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const file = new File([blob], "qrcode.png", { type: "image/png" });
+                            const shareData = {
+                                title: 'QR Code',
+                                text: 'Here is the generated QR Code.',
+                                files: [file] // Share the file instead of a URL
+                            };
+                            navigator.share(shareData)
+                                .catch(console.error);
+                        });
                 } else {
                     alert('Sharing not supported on this browser.');
                 }
+            } else {
+                alert('No QR Code generated to share.');
             }
         }
 
         function downloadQRCode() {
-            const qrCodeImage = document.querySelector('#qrcode img');
-            const link = document.createElement('a');
-            link.href = qrCodeImage.src;
-            link.download = 'qrcode.png';
-            link.click();
+            const qrCodeImage = document.querySelector('#qrcode img'); // Select the QR code image
+            if (qrCodeImage) {
+                const link = document.createElement('a');
+                link.href = qrCodeImage.src; // Use the src of the QR code image
+                link.download = 'qrcode.png'; // Set the filename
+                link.click(); // Trigger the download
+            } else {
+                alert('No QR Code generated to download.');
+            }
         }
 
         function copyQRCodeLink() {
             const qrCodeLink = document.querySelector('#qrcode img').src;
             navigator.clipboard.writeText(qrCodeLink).then(() => {
-                alert('QR code link copied to clipboard!');
+                alert('QR Code link copied to clipboard!');
             }).catch(err => {
-                alert('Failed to copy QR code link: ', err);
+                alert('Failed to copy the link: ', err);
             });
         }
     </script>
