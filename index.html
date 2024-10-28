@@ -54,6 +54,11 @@
         .hidden {
             display: none;
         }
+        @media (max-width: 600px) {
+            button {
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -136,7 +141,9 @@
                     title: 'QR Code',
                     text: 'Here is the generated QR Code.',
                     url: base64data // Share the SVG data
-                }).catch(console.error);
+                })
+                .then(() => console.log('Shared successfully'))
+                .catch(err => console.error('Error sharing:', err));
             } else {
                 alert('Sharing not supported on this browser.');
             }
@@ -150,7 +157,9 @@
             const link = document.createElement('a');
             link.href = base64data; // Use the SVG data for download
             link.download = 'qrcode.svg'; // Set the filename
+            document.body.appendChild(link); // Append to body for Firefox
             link.click(); // Trigger the download
+            document.body.removeChild(link); // Clean up
         }
     </script>
 </body>
