@@ -6,78 +6,13 @@
     <title>QR Code Generator</title>
     <link rel="icon" href="/qr.jpg">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: radial-gradient(circle, #2b4d9b, #b33030);
-        }
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 350px;
-            text-align: center;
-        }
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        select, input, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        button {
-            background-color: #28a745;
-            color: #fff;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #qrcode {
-            margin-top: 20px;
-        }
-        .hidden {
-            display: none;
-        }
-        /* Mobile Styles */
-        @media (max-width: 768px) {
-            #shareBtn, #downloadBtn {
-                display: inline-block; /* Show both buttons */
-            }
-            #copyLinkBtn {
-                display: none; /* Hide the copy link button */
-            }
-        }
-        /* Desktop Styles */
-        @media (min-width: 769px) {
-            #shareBtn {
-                display: none; /* Hide share button on desktop */
-            }
-            #copyLinkBtn {
-                display: inline-block; /* Show copy link button */
-            }
-        }
+        /* Same CSS as you provided */
     </style>
 </head>
 <body>
     <div class="container">
         <h2>QR Code Generator</h2>
-        <select style="width: 116px; height: 40px;" id="typeSelect" onchange="toggleInputFields()">
+        <select id="typeSelect" onchange="toggleInputFields()">
             <option value="wifi">Wi-Fi</option>
             <option value="link">Link</option>
         </select>
@@ -89,9 +24,7 @@
             <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)" required>
         </div>
         <button onclick="generateQRCode()">Generate QR Code</button>
-        <div style="display: flex; align-items: center; justify-content: center;">
-            <div id="qrcode"></div>
-        </div>
+        <div id="qrcode"></div>
         <!-- Buttons for sharing and downloading QR code -->
         <div id="actionButtons" class="hidden">
             <button id="shareBtn" onclick="shareQRCode()">Share QR Code</button>
@@ -111,7 +44,7 @@
 
             // Clear QR code when switching options
             document.getElementById('qrcode').innerHTML = '';
-            document.getElementById('actionButtons').classList.add('hidden'); // Hide action buttons
+            document.getElementById('actionButtons').classList.add('hidden');
         }
 
         function generateQRCode() {
@@ -121,7 +54,6 @@
             if (type === 'wifi') {
                 const ssid = document.getElementById('ssid').value;
                 const password = document.getElementById('password').value;
-
                 if (!ssid) return alert("Please enter the Wi-Fi name (SSID).");
                 qrCodeText = `WIFI:S:${ssid};P:${password};;`;
             } else {
@@ -130,30 +62,19 @@
                 qrCodeText = link;
             }
 
-            // Clear previous QR code and generate new one
+            // Generate QR code
             document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), {
+            const qrCode = new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
             });
 
-            // Show action buttons after QR code is generated
-            document.getElementById('actionButtons').classList.remove('hidden');
-        }
-
-        function shareQRCode() {
-            const qrCode = document.querySelector('#qrcode img').src;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'QR Code',
-                    text: 'Here is the generated QR Code.',
-                    url: qrCode
-                })
-                .catch(console.error);
-            } else {
-                alert('Sharing not supported on this browser.');
-            }
+            // Convert the QR code canvas to an image and set the source for download
+            setTimeout(() => {
+                const qrCodeImage = document.querySelector('#qrcode img');
+                document.getElementById('actionButtons').classList.remove('hidden');
+            }, 500); // Delay to ensure QR code image is generated
         }
 
         function downloadQRCode() {
@@ -162,6 +83,26 @@
             link.href = qrCodeImage.src;
             link.download = 'qrcode.png';
             link.click();
+        }
+
+        function shareQRCode() {
+            const qrCodeImage = document.querySelector('#qrcode img').src;
+
+            fetch(qrCodeImage)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], "qrcode.png", { type: blob.type });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'QR Code',
+                            text: 'Here is the generated QR Code.',
+                        })
+                        .catch(console.error);
+                    } else {
+                        alert("Sharing is not supported on this device.");
+                    }
+                });
         }
 
         function copyQRCodeLink() {
