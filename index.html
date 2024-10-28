@@ -50,10 +50,14 @@
         #qrcode {
             margin: 20px 0;
         }
-        /* Hide download button on mobile */
-        @media (max-width: 768px) {
-            #downloadBtn {
-                display: none;
+        /* Hide download button on mobile and initially on PC */
+        #downloadBtn {
+            display: none;
+        }
+        /* Show download button on PC after QR code generation */
+        @media (min-width: 769px) {
+            #downloadBtn.show {
+                display: inline-block;
             }
         }
     </style>
@@ -72,7 +76,9 @@
         <div id="linkFields" style="display: none;">
             <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)">
         </div>
-        <button onclick="generateQRCode()">Generate QR Code</button>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <button onclick="generateQRCode()">Generate QR Code</button>
+        </div>
         <div id="qrcode"></div>
         <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
     </div>
@@ -87,7 +93,9 @@
             wifiFields.style.display = type === 'wifi' ? 'block' : 'none';
             linkFields.style.display = type === 'link' ? 'block' : 'none';
 
+            // Clear QR code and hide download button
             document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('downloadBtn').classList.remove('show');
         }
 
         function generateQRCode() {
@@ -106,19 +114,23 @@
                 qrCodeText = link;
             }
 
+            // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
             new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
             });
+
+            // Show download button in PC mode
+            document.getElementById('downloadBtn').classList.add('show');
         }
 
         function downloadQRCode() {
             const qrImage = document.querySelector('#qrcode img');
             if (qrImage) {
                 const link = document.createElement('a');
-                link.href = qrImage.src.replace("image/png", "image/jpeg"); // Change format to JPEG
+                link.href = qrImage.src.replace("image/png", "image/jpeg"); // Convert to JPEG
                 link.download = 'qrcode.jpg';
                 link.click();
             } else {
