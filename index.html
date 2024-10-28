@@ -80,8 +80,8 @@
         <div style="display: flex; align-items: center; justify-content: center;">
             <div id="qrcode"></div>
         </div>
-        <button id="downloadButton" onclick="downloadQRCode()">Download QR Code</button>
-        <button id="copyButton" onclick="copyQRCodeLink()">Copy QR Link</button>
+        <button id="downloadButton" onclick="downloadQRCode()" class="hidden">Download QR Code</button>
+        <button id="copyButton" onclick="copyQRCodeLink()" class="hidden">Copy QR Link</button>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
@@ -93,9 +93,8 @@
             wifiFields.classList.toggle('hidden', type !== 'wifi');
             linkFields.classList.toggle('hidden', type === 'wifi');
 
-            // Clear QR code when switching options
+            // Clear QR code and hide buttons when switching options
             document.getElementById('qrcode').innerHTML = '';
-            // Hide buttons
             document.getElementById('downloadButton').style.display = 'none';
             document.getElementById('copyButton').style.display = 'none';
         }
