@@ -25,13 +25,11 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 350px;
             text-align: center;
+            max-width: 350px;
         }
         h2 {
             margin-bottom: 20px;
-            color: #333;
         }
         select, input, button {
             width: 100%;
@@ -50,36 +48,33 @@
             background-color: #218838;
         }
         #qrcode {
-            margin-top: 20px;
+            margin: 20px 0;
         }
-        .hidden {
-            display: none;
+        /* Hide download button on mobile */
+        @media (max-width: 768px) {
+            #downloadBtn {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>QR Code Generator</h2>
-        <select style="width: 116px; height: 40px;" id="typeSelect" onchange="toggleInputFields()">
+        <select id="typeSelect" onchange="toggleInputFields()">
             <option value="wifi">Wi-Fi</option>
             <option value="link">Link</option>
         </select>
         <div id="wifiFields">
-            <input type="text" id="ssid" placeholder="Wi-Fi Name (SSID)" required>
-            <input type="text" id="password" placeholder="Wi-Fi Password" required>
+            <input type="text" id="ssid" placeholder="Wi-Fi Name (SSID)">
+            <input type="text" id="password" placeholder="Wi-Fi Password">
         </div>
-        <div id="linkFields" class="hidden">
-            <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)" required>
+        <div id="linkFields" style="display: none;">
+            <input type="text" id="link" placeholder="Enter URL (e.g., https://example.com)">
         </div>
         <button onclick="generateQRCode()">Generate QR Code</button>
-        <div style="display: flex; align-items: center; justify-content: center;">
-            <div id="qrcode"></div>
-        </div>
-        <div id="actionButtons" class="hidden">
-            <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
-        </div>
-        <!-- Hidden canvas for QR code -->
-        <canvas id="qrCanvas" class="hidden"></canvas>
+        <div id="qrcode"></div>
+        <button id="downloadBtn" onclick="downloadQRCode()">Download QR Code</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -89,12 +84,10 @@
             const linkFields = document.getElementById('linkFields');
             const type = document.getElementById('typeSelect').value;
 
-            wifiFields.classList.toggle('hidden', type !== 'wifi');
-            linkFields.classList.toggle('hidden', type === 'wifi');
+            wifiFields.style.display = type === 'wifi' ? 'block' : 'none';
+            linkFields.style.display = type === 'link' ? 'block' : 'none';
 
-            // Clear QR code when switching options
             document.getElementById('qrcode').innerHTML = '';
-            document.getElementById('actionButtons').classList.add('hidden'); // Hide action buttons
         }
 
         function generateQRCode() {
@@ -113,37 +106,24 @@
                 qrCodeText = link;
             }
 
-            // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            const qr = new QRCode(document.getElementById('qrcode'), {
+            new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
             });
-
-            // Convert QR code to image in canvas
-            setTimeout(() => {
-                const qrCodeImage = document.querySelector('#qrcode img');
-                const canvas = document.getElementById('qrCanvas');
-                const context = canvas.getContext('2d');
-
-                canvas.width = qrCodeImage.width;
-                canvas.height = qrCodeImage.height;
-
-                // Draw QR code on canvas
-                context.drawImage(qrCodeImage, 0, 0, canvas.width, canvas.height);
-
-                // Show download button
-                document.getElementById('actionButtons').classList.remove('hidden');
-            }, 300); // Delay for QR code generation
         }
 
         function downloadQRCode() {
-            const canvas = document.getElementById('qrCanvas');
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/jpeg'); // Set format to JPEG
-            link.download = 'qrcode.jpg';
-            link.click();
+            const qrImage = document.querySelector('#qrcode img');
+            if (qrImage) {
+                const link = document.createElement('a');
+                link.href = qrImage.src.replace("image/png", "image/jpeg"); // Change format to JPEG
+                link.download = 'qrcode.jpg';
+                link.click();
+            } else {
+                alert('Please generate the QR code first.');
+            }
         }
     </script>
 </body>
