@@ -132,7 +132,7 @@
 
             // Clear previous QR code and generate new one
             document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), {
+            const qrCodeElement = new QRCode(document.getElementById('qrcode'), {
                 text: qrCodeText,
                 width: 200,
                 height: 200,
@@ -143,16 +143,19 @@
         }
 
         function shareQRCode() {
-            const qrCode = document.querySelector('#qrcode img').src;
-            if (navigator.share) {
-                navigator.share({
-                    title: 'QR Code',
-                    text: 'Here is the generated QR Code.',
-                    url: qrCode
-                })
-                .catch(console.error);
-            } else {
-                alert('Sharing not supported on this browser.');
+            const qrCodeImg = document.querySelector('#qrcode img');
+            if (qrCodeImg) {
+                const qrCodeImageUrl = qrCodeImg.src;
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'QR Code',
+                        text: 'Here is the generated QR Code.',
+                        files: [new File([qrCodeImageUrl], 'qrcode.png', { type: 'image/png' })] // Share the image file
+                    })
+                    .catch(console.error);
+                } else {
+                    alert('Sharing not supported on this browser.');
+                }
             }
         }
 
