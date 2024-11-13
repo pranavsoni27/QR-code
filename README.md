@@ -16,7 +16,3 @@ Welcome to the **QR Code Generator** project! This application allows users to g
 - CSS
 - JavaScript
 - QR Code Library
-
-## Tags 🏷️
-#qrcode #generator #link #wifi #javascript #html #css #opensource #webdevelopment #coding #webapp #frontend #userinterface #tool #browser #technology #software #mobilefriendly #secure #productivity #design
-
